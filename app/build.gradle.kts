@@ -44,6 +44,10 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
     implementation("androidx.core:core-ktx:1.15.0")
 
+    // Kalenteri
+    implementation("io.github.epicarchitect:calendar-compose-basis:1.0.5")
+    implementation("io.github.epicarchitect:calendar-compose-datepicker:1.0.5")
+
     // Firebase
     val firebaseBom = platform("com.google.firebase:firebase-bom:33.7.0")
     implementation(firebaseBom)

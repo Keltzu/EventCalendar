@@ -10,6 +10,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.eventcalendar.ui.auth.LoginScreen
 import com.example.eventcalendar.ui.auth.RegisterScreen
+import com.example.eventcalendar.ui.calendar.CalendarScreen
+import com.example.eventcalendar.ui.events.AddEventScreen
 import com.example.eventcalendar.ui.home.HomeScreen
 import com.example.eventcalendar.ui.navigation.Screen
 import com.example.eventcalendar.ui.theme.EventCalendarTheme
@@ -66,6 +68,26 @@ class MainActivity : ComponentActivity() {
                                 navController.navigate(Screen.Login.route) {
                                     popUpTo(Screen.Home.route) { inclusive = true }
                                 }
+                            },
+                            onNavigateToCalendar = {
+                                navController.navigate(Screen.Calendar.route)
+                            },
+                        )
+                    }
+                    composable(Screen.Calendar.route) {
+                        CalendarScreen(
+                            onNavigateBack = {
+                                navController.popBackStack()
+                            },
+                            onNavigateToAddEvent = {
+                                navController.navigate(Screen.AddEvent.route)
+                            }
+                        )
+                    }
+                    composable(Screen.AddEvent.route) {
+                        AddEventScreen(
+                            onNavigateBack = {
+                                navController.popBackStack()
                             }
                         )
                     }

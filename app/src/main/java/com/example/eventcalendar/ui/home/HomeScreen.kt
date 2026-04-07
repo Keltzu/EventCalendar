@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -20,6 +21,7 @@ import com.example.eventcalendar.viewmodel.EventViewModel
 @Composable
 fun HomeScreen(
     onLogout: () -> Unit,
+    onNavigateToCalendar: () -> Unit,
     viewModel: EventViewModel = hiltViewModel()
 ) {
     val eventState by viewModel.eventState.collectAsState()
@@ -29,17 +31,15 @@ fun HomeScreen(
             TopAppBar(
                 title = { Text("EventCalendar") },
                 actions = {
+                    IconButton(onClick = onNavigateToCalendar) {
+                        Icon(Icons.Default.CalendarMonth, contentDescription = "Kalenteri")
+                    }
                     IconButton(onClick = onLogout) {
                         Icon(Icons.Default.ExitToApp, contentDescription = "Kirjaudu ulos")
                     }
                 }
             )
         },
-        floatingActionButton = {
-            FloatingActionButton(onClick = { /* lisätään myöhemmin */ }) {
-                Icon(Icons.Default.Add, contentDescription = "Lisää tapahtuma")
-            }
-        }
     ) { paddingValues ->
         Column(
             modifier = Modifier
