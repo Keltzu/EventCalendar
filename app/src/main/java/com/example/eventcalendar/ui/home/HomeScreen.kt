@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.Leaderboard
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,21 +17,29 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.eventcalendar.model.Event
 import com.example.eventcalendar.viewmodel.EventState
 import com.example.eventcalendar.viewmodel.EventViewModel
+import com.example.eventcalendar.viewmodel.StreakState
+import com.example.eventcalendar.viewmodel.StreakViewModel
+import com.google.firebase.auth.FirebaseAuth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     onLogout: () -> Unit,
     onNavigateToCalendar: () -> Unit,
+    onNavigateToLeaderboard: () -> Unit,
     viewModel: EventViewModel = hiltViewModel()
 ) {
     val eventState by viewModel.eventState.collectAsState()
+    val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("EventCalendar") },
                 actions = {
+                    IconButton(onClick = onNavigateToLeaderboard) {
+                        Icon(Icons.Default.Leaderboard, contentDescription = "Leaderboard")
+                    }
                     IconButton(onClick = onNavigateToCalendar) {
                         Icon(Icons.Default.CalendarMonth, contentDescription = "Kalenteri")
                     }
@@ -74,7 +83,10 @@ fun HomeScreen(
                             contentPadding = PaddingValues(vertical = 16.dp)
                         ) {
                             items(state.events) { event ->
-                                EventCard(event = event)
+                                EventCard(
+                                    event = event,
+                                    currentUserId = currentUserId
+                                )
                             }
                         }
                     }
@@ -97,7 +109,14 @@ fun HomeScreen(
 }
 
 @Composable
-fun EventCard(event: Event) {
+fun EventCard(
+    event: Event,
+    currentUserId: String,
+    streakViewModel: StreakViewModel = hiltViewModel()
+) {
+    val streakState by streakViewModel.streakState.collectAsState()
+    val hasAttended = event.id.isNotEmpty()
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -123,6 +142,44 @@ fun EventCard(event: Event) {
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            when (streakState) {
+                is StreakState.Error -> {
+                    Text(
+                        text = (streakState as StreakState.Error).message,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+                is StreakState.Success -> {
+                    Text(
+                        text = "✅ Kirjauduttu! Pisteet lisätty",
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+                else -> Unit
+            }
+
+            Button(
+                onClick = {
+                    if (currentUserId.isNotEmpty()) {
+                        streakViewModel.checkIn(currentUserId, event.id)
+                    }
+                },
+                enabled = streakState !is StreakState.Loading,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                if (streakState is StreakState.Loading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                } else {
+                    Text("Olen paikalla")
+                }
+            }
         }
     }
 }

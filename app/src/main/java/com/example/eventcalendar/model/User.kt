@@ -8,5 +8,6 @@ data class User(
     val streak: Int = 0,
     val lastCheckIn: Long = 0L,
     val attendedEvents: List<String> = emptyList(),
-    val totalDrinksLogged: Int = 0
+    val totalDrinksLogged: Int = 0,
+    val weekly_points: Int = 0
 )
