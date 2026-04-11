@@ -17,6 +17,15 @@ import com.example.eventcalendar.ui.navigation.Screen
 import com.example.eventcalendar.ui.theme.EventCalendarTheme
 import com.example.eventcalendar.viewmodel.AuthViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import com.example.eventcalendar.ui.leaderboard.LeaderboardScreen
+import com.google.firebase.auth.FirebaseAuth
+import com.example.eventcalendar.ui.events.EditEventScreen
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import com.example.eventcalendar.viewmodel.EventState
+import com.example.eventcalendar.viewmodel.EventViewModel
+import androidx.compose.runtime.collectAsState
+import com.example.eventcalendar.ui.map.MapScreen
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -72,6 +81,9 @@ class MainActivity : ComponentActivity() {
                             onNavigateToCalendar = {
                                 navController.navigate(Screen.Calendar.route)
                             },
+                            onNavigateToLeaderboard = {
+                                navController.navigate(Screen.Leaderboard.route)
+                            },
                         )
                     }
                     composable(Screen.Calendar.route) {
@@ -81,6 +93,18 @@ class MainActivity : ComponentActivity() {
                             },
                             onNavigateToAddEvent = {
                                 navController.navigate(Screen.AddEvent.route)
+                            },
+                            onNavigateToEditEvent = { event ->
+                                navController.navigate(Screen.EditEvent.createRoute(event.id))
+                            },
+                            onNavigateToMap = { event ->
+                                navController.navigate(
+                                    Screen.Map.createRoute(
+                                        locationName = event.location,
+                                        latitude = event.latitude,
+                                        longitude = event.longitude
+                                    )
+                                )
                             }
                         )
                     }
@@ -89,6 +113,51 @@ class MainActivity : ComponentActivity() {
                             onNavigateBack = {
                                 navController.popBackStack()
                             }
+                        )
+                    }
+                    composable(Screen.Leaderboard.route) {
+                        LeaderboardScreen(
+                            onNavigateBack = {
+                                navController.popBackStack()
+                            },
+                            currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+                        )
+                    }
+                    composable(
+                        route = Screen.EditEvent.route,
+                        arguments = listOf(
+                            navArgument("eventId") { type = NavType.StringType }
+                        )
+                    ) { backStackEntry ->
+                        val eventId = backStackEntry.arguments?.getString("eventId") ?: ""
+                        val eventViewModel: EventViewModel = hiltViewModel()
+                        val eventState = eventViewModel.eventState.collectAsState()
+                        val event = (eventState.value as? EventState.Success)?.events?.find { it.id == eventId }
+
+                        event?.let {
+                            EditEventScreen(
+                                event = it,
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+                    }
+                    composable(
+                        route = Screen.Map.route,
+                        arguments = listOf(
+                            navArgument("locationName") { type = NavType.StringType },
+                            navArgument("latitude") { type = NavType.FloatType },
+                            navArgument("longitude") { type = NavType.FloatType }
+                        )
+                    ) { backStackEntry ->
+                        val locationName = backStackEntry.arguments?.getString("locationName") ?: ""
+                        val latitude = backStackEntry.arguments?.getFloat("latitude")?.toDouble() ?: 0.0
+                        val longitude = backStackEntry.arguments?.getFloat("longitude")?.toDouble() ?: 0.0
+
+                        MapScreen(
+                            locationName = locationName,
+                            latitude = latitude,
+                            longitude = longitude,
+                            onNavigateBack = { navController.popBackStack() }
                         )
                     }
                 }

@@ -25,12 +25,17 @@ import com.example.eventcalendar.viewmodel.EventState
 import com.example.eventcalendar.viewmodel.EventViewModel
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.LocationOn
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalendarScreen(
     onNavigateBack: () -> Unit,
     onNavigateToAddEvent: () -> Unit,
+    onNavigateToEditEvent: (Event) -> Unit,
+    onNavigateToMap: (Event) -> Unit,
     viewModel: EventViewModel = hiltViewModel()
 ) {
     val eventState by viewModel.eventState.collectAsState()
@@ -40,6 +45,10 @@ fun CalendarScreen(
     val events = when (val state = eventState) {
         is EventState.Success -> state.events
         else -> emptyList()
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.loadEvents()
     }
 
     Scaffold(
@@ -110,7 +119,7 @@ fun CalendarScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Päivät
+            // päivät
             CalendarGrid(
                 currentMonth = currentMonth,
                 selectedDate = selectedDate,
@@ -146,7 +155,11 @@ fun CalendarScreen(
             } else {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(selectedDateEvents) { event ->
-                        CalendarEventCard(event = event)
+                        CalendarEventCard(
+                            event = event,
+                            onEditClick = onNavigateToEditEvent,
+                            onShowMapClick = onNavigateToMap
+                        )
                     }
                 }
             }
@@ -252,9 +265,15 @@ fun CalendarGrid(
 }
 
 @Composable
-fun CalendarEventCard(event: Event) {
+fun CalendarEventCard(
+    event: Event,
+    onEditClick: (Event) -> Unit,
+    onShowMapClick: (Event) -> Unit
+) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onEditClick(event) },
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
@@ -271,7 +290,7 @@ fun CalendarEventCard(event: Event) {
                     .background(MaterialTheme.colorScheme.primary)
             )
             Spacer(modifier = Modifier.width(12.dp))
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = event.title,
                     style = MaterialTheme.typography.titleSmall,
@@ -286,6 +305,23 @@ fun CalendarEventCard(event: Event) {
                     text = SimpleDateFormat("HH:mm", Locale("fi")).format(Date(event.startTime)),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.primary
+                )
+            }
+            // kartta nappi
+            if (event.latitude != 0.0 && event.longitude != 0.0) {
+                IconButton(onClick = { onShowMapClick(event) }) {
+                    Icon(
+                        imageVector = Icons.Default.LocationOn,
+                        contentDescription = "Näytä kartalla",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+            IconButton(onClick = { onEditClick(event) }) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Muokkaa",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

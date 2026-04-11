@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+
 sealed class EventState {
     object Idle : EventState()
     object Loading : EventState()
@@ -26,15 +27,20 @@ class EventViewModel @Inject constructor(
     val eventState: StateFlow<EventState> = _eventState
 
     init {
-        loadEvents()
+        viewModelScope.launch {
+            eventRepository.getEventsFlow()
+                .collect { events ->
+                    _eventState.value = EventState.Success(events)
+                }
+        }
     }
 
     fun loadEvents() {
         viewModelScope.launch {
-            _eventState.value = EventState.Loading
-            eventRepository.getEvents()
-                .onSuccess { _eventState.value = EventState.Success(it) }
-                .onFailure { _eventState.value = EventState.Error(it.message ?: "Virhe tapahtumien lataamisessa") }
+            eventRepository.getEventsFlow()
+                .collect { events ->
+                    _eventState.value = EventState.Success(events)
+                }
         }
     }
 
@@ -43,6 +49,21 @@ class EventViewModel @Inject constructor(
             eventRepository.addEvent(event)
                 .onSuccess { loadEvents() }
                 .onFailure { _eventState.value = EventState.Error(it.message ?: "Virhe tapahtuman lisäämisessä") }
+        }
+    }
+    fun updateEvent(event: Event) {
+        viewModelScope.launch {
+            eventRepository.updateEvent(event)
+                .onSuccess { loadEvents() }
+                .onFailure { _eventState.value = EventState.Error(it.message ?: "Virhe tapahtuman päivityksessä") }
+        }
+    }
+
+    fun deleteEvent(eventId: String) {
+        viewModelScope.launch {
+            eventRepository.deleteEvent(eventId)
+                .onSuccess { loadEvents() }
+                .onFailure { _eventState.value = EventState.Error(it.message ?: "Virhe tapahtuman poistamisessa") }
         }
     }
 }
