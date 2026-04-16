@@ -45,7 +45,7 @@ fun EditEventScreen(
         mutableStateOf(timeFormat.format(Date(event.endTime)))
     }
 
-    // Poistodialoogi
+
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
@@ -54,7 +54,7 @@ fun EditEventScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        viewModel.deleteEvent(event.id)
+                        viewModel.deleteEvent(event)
                         onNavigateBack()
                     }
                 ) {

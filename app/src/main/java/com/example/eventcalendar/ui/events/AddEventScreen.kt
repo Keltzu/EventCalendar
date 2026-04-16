@@ -16,6 +16,7 @@ import com.example.eventcalendar.model.Event
 import com.example.eventcalendar.viewmodel.EventViewModel
 import java.text.SimpleDateFormat
 import java.util.*
+import com.example.eventcalendar.ui.components.PlaceSearchField
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,11 +72,17 @@ fun AddEventScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            OutlinedTextField(
+            var latitude by remember { mutableStateOf(0.0) }
+            var longitude by remember { mutableStateOf(0.0) }
+
+            PlaceSearchField(
                 value = location,
                 onValueChange = { location = it },
-                label = { Text("Paikka") },
-                singleLine = true,
+                onPlaceSelected = { result ->
+                    location = result.display_name
+                    latitude = result.lat.toDoubleOrNull() ?: 0.0
+                    longitude = result.lon.toDoubleOrNull() ?: 0.0
+                },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -158,11 +165,13 @@ fun AddEventScreen(
                             title = title,
                             description = description,
                             location = location,
+                            latitude = latitude,
+                            longitude = longitude,
                             startTime = startTimestamp,
                             endTime = endTimestamp,
                             category = category
                         )
-                        viewModel.addEvent(event)
+                        viewModel.addPersonalEvent(event)
                         onNavigateBack()
                     } catch (e: Exception) {
                         errorMessage = "Tarkista päivämäärä ja aika formaatti"

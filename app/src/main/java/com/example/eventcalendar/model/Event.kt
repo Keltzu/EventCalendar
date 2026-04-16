@@ -11,5 +11,7 @@ data class Event(
     val endTime: Long = 0L,
     val category: String = "",
     val attendeeCount: Int = 0,
-    val imageUrl: String = ""
+    val imageUrl: String = "",
+    val isPersonal: Boolean = false,
+    val createdBy: String = ""
 )
