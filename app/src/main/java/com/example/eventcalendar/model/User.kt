@@ -6,6 +6,7 @@ data class User(
     val displayName: String = "",
     val points: Int = 0,
     val streak: Int = 0,
+    val longestStreak: Int = 0,
     val lastCheckIn: Long = 0L,
     val attendedEvents: List<String> = emptyList(),
     val totalDrinksLogged: Int = 0,
