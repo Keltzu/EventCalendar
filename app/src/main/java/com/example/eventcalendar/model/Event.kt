@@ -12,6 +12,7 @@ data class Event(
     val category: String = "",
     val attendeeCount: Int = 0,
     val imageUrl: String = "",
+    @get:JvmName("getIsPersonal")
     val isPersonal: Boolean = false,
     val createdBy: String = ""
 )

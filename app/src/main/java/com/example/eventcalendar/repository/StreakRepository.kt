@@ -47,6 +47,7 @@ class StreakRepository @Inject constructor(
         userRef.update(
             mapOf(
                 "streak" to newStreak,
+                "longestStreak" to maxOf(newStreak, user.longestStreak),
                 "lastCheckIn" to now.timeInMillis,
                 "points" to user.points + pointsEarned,
                 "weeklyPoints" to user.weekly_points + pointsEarned,
