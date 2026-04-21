@@ -28,6 +28,7 @@ import java.util.*
 import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.ui.unit.sp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,6 +37,7 @@ fun CalendarScreen(
     onNavigateToAddEvent: () -> Unit,
     onNavigateToEditEvent: (Event) -> Unit,
     onNavigateToMap: (Event) -> Unit,
+    onNavigateToDrinkCounter: (Event) -> Unit,
     viewModel: EventViewModel = hiltViewModel()
 ) {
     val eventState by viewModel.eventState.collectAsState()
@@ -158,7 +160,9 @@ fun CalendarScreen(
                         CalendarEventCard(
                             event = event,
                             onEditClick = onNavigateToEditEvent,
-                            onShowMapClick = onNavigateToMap
+                            onShowMapClick = onNavigateToMap,
+                            onDrinkCounterClick = onNavigateToDrinkCounter
+
                         )
                     }
                 }
@@ -268,7 +272,8 @@ fun CalendarGrid(
 fun CalendarEventCard(
     event: Event,
     onEditClick: (Event) -> Unit,
-    onShowMapClick: (Event) -> Unit
+    onShowMapClick: (Event) -> Unit,
+    onDrinkCounterClick: (Event) -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -306,6 +311,10 @@ fun CalendarEventCard(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.primary
                 )
+            }
+            // juomanappi
+            IconButton(onClick = { onDrinkCounterClick(event) }) {
+                Text(text = "🍺", fontSize = 20.sp)
             }
             // kartta nappi
             if (event.latitude != 0.0 && event.longitude != 0.0) {

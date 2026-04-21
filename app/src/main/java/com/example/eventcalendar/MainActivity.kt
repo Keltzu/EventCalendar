@@ -26,6 +26,9 @@ import com.example.eventcalendar.viewmodel.EventState
 import com.example.eventcalendar.viewmodel.EventViewModel
 import androidx.compose.runtime.collectAsState
 import com.example.eventcalendar.ui.map.MapScreen
+import com.example.eventcalendar.ui.profile.ProfileScreen
+import com.example.eventcalendar.ui.drinks.DrinkCounterScreen
+import com.example.eventcalendar.ui.kide.KideAppScreen
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -84,6 +87,12 @@ class MainActivity : ComponentActivity() {
                             onNavigateToLeaderboard = {
                                 navController.navigate(Screen.Leaderboard.route)
                             },
+                            onNavigateToProfile = {
+                                navController.navigate(Screen.Profile.route)
+                            },
+                            onNavigateToKideApp = {
+                                navController.navigate(Screen.KideApp.route)
+                            },
                         )
                     }
                     composable(Screen.Calendar.route) {
@@ -103,6 +112,14 @@ class MainActivity : ComponentActivity() {
                                         locationName = event.location,
                                         latitude = event.latitude,
                                         longitude = event.longitude
+                                    )
+                                )
+                            },
+                            onNavigateToDrinkCounter = { event ->
+                                navController.navigate(
+                                    Screen.DrinkCounter.createRoute(
+                                        eventId = event.id,
+                                        eventName = event.title
                                     )
                                 )
                             }
@@ -158,6 +175,41 @@ class MainActivity : ComponentActivity() {
                             latitude = latitude,
                             longitude = longitude,
                             onNavigateBack = { navController.popBackStack() }
+                        )
+                    }
+                    composable(Screen.Profile.route) {
+                        ProfileScreen(
+                            onNavigateBack = {
+                                navController.popBackStack()
+                            },
+                            onLogout = {
+                                authViewModel.logout()
+                                navController.navigate(Screen.Login.route) {
+                                    popUpTo(Screen.Home.route) { inclusive = true }
+                                }
+                            }
+                        )
+                    }
+                    composable(
+                        route = Screen.DrinkCounter.route,
+                        arguments = listOf(
+                            navArgument("eventId") { type = NavType.StringType },
+                            navArgument("eventName") { type = NavType.StringType }
+                        )
+                    ) { backStackEntry ->
+                        val eventId = backStackEntry.arguments?.getString("eventId") ?: ""
+                        val eventName = backStackEntry.arguments?.getString("eventName") ?: ""
+                        DrinkCounterScreen(
+                            eventId = eventId,
+                            eventName = eventName,
+                            onNavigateBack = { navController.popBackStack() }
+                        )
+                    }
+                    composable(Screen.KideApp.route) {
+                        KideAppScreen(
+                            onNavigateBack = {
+                                navController.popBackStack()
+                            }
                         )
                     }
                 }
