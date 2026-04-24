@@ -8,6 +8,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
 import javax.inject.Inject
 
 @HiltViewModel
@@ -24,6 +26,9 @@ class DrinkViewModel @Inject constructor(
     private val _isSaved = MutableStateFlow(false)
     val isSaved: StateFlow<Boolean> = _isSaved
 
+    private val _drinkHistory = MutableStateFlow<List<String>>(emptyList())
+    val drinkHistory: StateFlow<List<String>> = _drinkHistory
+
     fun loadDrinkLog(userId: String, eventId: String) {
         viewModelScope.launch {
             drinkRepository.getDrinkLogForEvent(userId, eventId)
@@ -31,6 +36,7 @@ class DrinkViewModel @Inject constructor(
                     if (log != null) {
                         _currentLog.value = log
                         _drinkCount.value = log.drinkCount
+                        _drinkHistory.value = log.drinkHistory
                     }
                 }
         }
@@ -38,12 +44,24 @@ class DrinkViewModel @Inject constructor(
 
     fun incrementDrink() {
         _drinkCount.value++
+        val time = SimpleDateFormat("HH:mm", Locale("fi")).format(Date())
+        _drinkHistory.value = _drinkHistory.value + "Manuaalinen — $time"
+        _isSaved.value = false
+    }
+
+    fun incrementDrinkWithQr(qrContent: String) {
+        _drinkCount.value++
+        val time = SimpleDateFormat("HH:mm", Locale("fi")).format(Date())
+        _drinkHistory.value = _drinkHistory.value + "QR-koodi — $time"
         _isSaved.value = false
     }
 
     fun decrementDrink() {
         if (_drinkCount.value > 0) {
             _drinkCount.value--
+            if (_drinkHistory.value.isNotEmpty()) {
+                _drinkHistory.value = _drinkHistory.value.dropLast(1)
+            }
             _isSaved.value = false
         }
     }
@@ -56,6 +74,7 @@ class DrinkViewModel @Inject constructor(
                 eventId = eventId,
                 eventName = eventName,
                 drinkCount = _drinkCount.value,
+                drinkHistory = _drinkHistory.value,
                 timestamp = System.currentTimeMillis()
             )
             drinkRepository.saveDrinkLog(log)
@@ -70,5 +89,6 @@ class DrinkViewModel @Inject constructor(
         _drinkCount.value = 0
         _currentLog.value = null
         _isSaved.value = false
+        _drinkHistory.value = emptyList()
     }
 }

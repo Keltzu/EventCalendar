@@ -20,7 +20,10 @@ android {
         manifestPlaceholders["MAPS_API_KEY"] = project.findProperty("MAPS_API_KEY") ?: ""
     }
 
-    buildFeatures { compose = true }
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -83,4 +86,11 @@ dependencies {
 
     // HTML web scrapingiin
     implementation("org.jsoup:jsoup:1.17.2")
+
+    // QR-koodi
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+    implementation("com.google.zxing:core:3.5.3")
+
+    // Gemini AI
+    implementation("com.google.ai.client.generativeai:generativeai:0.7.0")
 }

@@ -6,5 +6,6 @@ data class DrinkLog(
     val eventId: String = "",
     val eventName: String = "",
     val drinkCount: Int = 0,
+    val drinkHistory: List<String> = emptyList(),
     val timestamp: Long = 0L
 )
