@@ -39,6 +39,7 @@ fun HomeScreen(
     onNavigateToLeaderboard: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateToKideApp: () -> Unit,
+    onNavigateToRecommendations: () -> Unit,
     viewModel: EventViewModel = hiltViewModel()
 ) {
     val eventState by viewModel.eventState.collectAsState()
@@ -223,6 +224,13 @@ fun HomeScreen(
                         subtitle = "Hae opiskelijatapahtumia",
                         icon = Icons.Default.Search,
                         onClick = onNavigateToKideApp,
+                        modifier = Modifier.weight(1f)
+                    )
+                    MenuCard(
+                        title = "AI Suositukset",
+                        subtitle = "Gemini suosittelee",
+                        icon = Icons.Default.AutoAwesome,
+                        onClick = onNavigateToRecommendations,
                         modifier = Modifier.weight(1f)
                     )
                 }

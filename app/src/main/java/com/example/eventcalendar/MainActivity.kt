@@ -29,6 +29,7 @@ import com.example.eventcalendar.ui.map.MapScreen
 import com.example.eventcalendar.ui.profile.ProfileScreen
 import com.example.eventcalendar.ui.drinks.DrinkCounterScreen
 import com.example.eventcalendar.ui.kide.KideAppScreen
+import com.example.eventcalendar.ui.ai.RecommendationScreen
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -93,6 +94,9 @@ class MainActivity : ComponentActivity() {
                             onNavigateToKideApp = {
                                 navController.navigate(Screen.KideApp.route)
                             },
+                            onNavigateToRecommendations = {
+                                navController.navigate(Screen.Recommendations.route)
+                            }
                         )
                     }
                     composable(Screen.Calendar.route) {
@@ -207,6 +211,13 @@ class MainActivity : ComponentActivity() {
                     }
                     composable(Screen.KideApp.route) {
                         KideAppScreen(
+                            onNavigateBack = {
+                                navController.popBackStack()
+                            }
+                        )
+                    }
+                    composable(Screen.Recommendations.route) {
+                        RecommendationScreen(
                             onNavigateBack = {
                                 navController.popBackStack()
                             }

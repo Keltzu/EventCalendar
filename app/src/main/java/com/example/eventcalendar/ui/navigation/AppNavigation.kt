@@ -20,4 +20,5 @@ sealed class Screen(val route: String) {
             "drink_counter/$eventId/${eventName.replace("/", " ")}"
     }
     object KideApp : Screen("kide_app")
+    object Recommendations : Screen("recommendations")
 }
