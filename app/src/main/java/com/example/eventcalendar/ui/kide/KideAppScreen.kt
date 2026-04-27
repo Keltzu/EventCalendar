@@ -1,5 +1,6 @@
 package com.example.eventcalendar.ui.kide
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -14,15 +15,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.eventcalendar.model.Event
 import com.example.eventcalendar.viewmodel.KideAppState
 import com.example.eventcalendar.viewmodel.KideAppViewModel
 import java.text.SimpleDateFormat
 import java.util.*
-import androidx.compose.material3.FilterChip
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,6 +37,7 @@ fun KideAppScreen(
     val addedEvents by viewModel.addedEvents.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
     var selectedCity by remember { mutableStateOf("Kaikki") }
+    val cityParam = if (selectedCity == "Kaikki") "" else selectedCity.lowercase()
 
     val cities = listOf(
         "Kaikki", "Oulu", "Helsinki", "Tampere",
@@ -43,12 +47,15 @@ fun KideAppScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Kide.app tapahtumat") },
+                title = { Text("Kide.app tapahtumat", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Takaisin")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
             )
         }
     ) { paddingValues ->
@@ -56,53 +63,84 @@ fun KideAppScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp)
         ) {
-            // Hakukenttä
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    label = { Text("Hae tapahtumia") },
-                    leadingIcon = {
-                        Icon(Icons.Default.Search, contentDescription = null)
-                    },
-                    singleLine = true,
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.weight(1f)
-                )
-                Button(
-                    onClick = { },
-                    modifier = Modifier.padding(top = 4.dp),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text("Hae")
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Kaupunki suodattimet
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(cities) { city ->
-                    FilterChip(
-                        selected = selectedCity == city,
-                        onClick = {
-                            selectedCity = city
-                            val cityParam = if (city == "Kaikki") "" else city.lowercase()
-                            viewModel.searchEvents(searchQuery, cityParam)
-                        },
-                        label = { Text(city) }
+            // Header gradientilla
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primary,
+                                MaterialTheme.colorScheme.secondary
+                            )
+                        )
                     )
+                    .padding(16.dp)
+            ) {
+                Column {
+                    // Hakukenttä
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        OutlinedTextField(
+                            value = searchQuery,
+                            onValueChange = { searchQuery = it },
+                            label = { Text("Hae tapahtumia", color = Color.White) },
+                            leadingIcon = {
+                                Icon(Icons.Default.Search, contentDescription = null, tint = Color.White)
+                            },
+                            singleLine = true,
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.weight(1f),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Color.White,
+                                unfocusedBorderColor = Color.White.copy(alpha = 0.5f),
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White,
+                                cursorColor = Color.White
+                            )
+                        )
+                        Button(
+                            onClick = { viewModel.searchEvents(searchQuery, cityParam) },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.White,
+                                contentColor = MaterialTheme.colorScheme.primary
+                            )
+                        ) {
+                            Text("Hae", fontWeight = FontWeight.Bold)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Kaupunki suodattimet
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(cities) { city ->
+                            FilterChip(
+                                selected = selectedCity == city,
+                                onClick = {
+                                    selectedCity = city
+                                    val cp = if (city == "Kaikki") "" else city.lowercase()
+                                    viewModel.searchEvents(searchQuery, cp)
+                                },
+                                label = { Text(city) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = Color.White,
+                                    selectedLabelColor = MaterialTheme.colorScheme.primary,
+                                    containerColor = Color.Transparent,
+                                    labelColor = Color.White
+                                )
+                            )
+                        }
+                    }
                 }
             }
-
-            Spacer(modifier = Modifier.height(8.dp))
 
             // Hae kaikki nappi
             OutlinedButton(
@@ -110,13 +148,13 @@ fun KideAppScreen(
                     selectedCity = "Kaikki"
                     viewModel.searchEvents()
                 },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Text("Näytä kaikki tapahtumat")
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
 
             when (val currentState = state) {
                 is KideAppState.Idle -> {
@@ -125,17 +163,13 @@ fun KideAppScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                text = "🎉",
-                                style = MaterialTheme.typography.displayMedium
-                            )
+                            Text(text = "🎉", fontSize = 48.sp)
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 text = "Hae Kide.app tapahtumia",
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 text = "Valitse kaupunki tai hae nimellä",
                                 style = MaterialTheme.typography.bodySmall,
@@ -161,7 +195,6 @@ fun KideAppScreen(
                     }
                 }
                 is KideAppState.Success -> {
-                    // tapahtumahaku
                     val filteredEvents = if (searchQuery.isEmpty()) {
                         currentState.events
                     } else {
@@ -184,19 +217,21 @@ fun KideAppScreen(
                             )
                         }
                     } else {
-                        Text(
-                            text = "${filteredEvents.size} tapahtumaa löydetty",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            items(filteredEvents) { event ->
-                                KideEventCard(
-                                    event = event,
-                                    isAdded = addedEvents.contains(event.id),
-                                    onAddClick = { viewModel.addEventToCalendar(event) }
-                                )
+                        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                            Text(
+                                text = "${filteredEvents.size} tapahtumaa löydetty",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(vertical = 8.dp)
+                            )
+                            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                items(filteredEvents) { event ->
+                                    KideEventCard(
+                                        event = event,
+                                        isAdded = addedEvents.contains(event.id),
+                                        onAddClick = { viewModel.addEventToCalendar(event) }
+                                    )
+                                }
                             }
                         }
                     }
@@ -206,11 +241,11 @@ fun KideAppScreen(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                text = "❌",
-                                style = MaterialTheme.typography.displayMedium
-                            )
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            Text(text = "❌", fontSize = 48.sp)
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 text = currentState.message,
@@ -219,10 +254,7 @@ fun KideAppScreen(
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Button(
-                                onClick = {
-                                    val cityParam = if (selectedCity == "Kaikki") "" else selectedCity.lowercase()
-                                    viewModel.searchEvents(searchQuery, cityParam)
-                                },
+                                onClick = { viewModel.searchEvents(searchQuery, cityParam) },
                                 shape = RoundedCornerShape(12.dp)
                             ) {
                                 Text("Yritä uudelleen")
@@ -266,19 +298,28 @@ fun KideEventCard(
                     )
                     if (event.location.isNotEmpty()) {
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "📍 ${event.location}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(text = "📍", fontSize = 12.sp)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = event.location,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                     if (event.startTime > 0) {
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "🕐 ${dateFormat.format(Date(event.startTime))}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(text = "🕐", fontSize = 12.sp)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = dateFormat.format(java.util.Date(event.startTime)),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
                     }
                 }
 
@@ -324,7 +365,12 @@ fun KideEventCard(
             Spacer(modifier = Modifier.height(8.dp))
             AssistChip(
                 onClick = { },
-                label = { Text("Kide.app", style = MaterialTheme.typography.labelSmall) }
+                label = {
+                    Text(
+                        "Kide.app",
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                }
             )
         }
     }

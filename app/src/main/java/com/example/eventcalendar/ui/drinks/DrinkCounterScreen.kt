@@ -1,8 +1,7 @@
 package com.example.eventcalendar.ui.drinks
 
-import android.app.Activity
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -15,6 +14,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -41,7 +43,6 @@ fun DrinkCounterScreen(
         viewModel.loadDrinkLog(currentUserId, eventId)
     }
 
-    // QR-skanneri launcheri
     val scanLauncher = rememberLauncherForActivityResult(ScanContract()) { result ->
         if (result.contents != null) {
             viewModel.incrementDrinkWithQr(result.contents)
@@ -51,50 +52,92 @@ fun DrinkCounterScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Juomalaskuri") },
+                title = { Text("Juomalaskuri", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Takaisin")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
             )
         }
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp),
+                .padding(paddingValues),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = eventName,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "Merkitse juomasi",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            // Header gradientilla
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primary,
+                                MaterialTheme.colorScheme.secondary
+                            )
+                        )
+                    )
+                    .padding(24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = eventName,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Text(
+                        text = "Merkitse juomasi",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.8f)
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // juomien määrä
-            Text(
-                text = drinkCount.toString(),
-                fontSize = 80.sp,
-                fontWeight = FontWeight.Bold,
-                color = when {
-                    drinkCount == 0 -> MaterialTheme.colorScheme.onSurface
-                    drinkCount <= 3 -> MaterialTheme.colorScheme.primary
-                    drinkCount <= 6 -> MaterialTheme.colorScheme.tertiary
-                    else -> MaterialTheme.colorScheme.error
+            // Juomien määrä
+            Box(
+                modifier = Modifier
+                    .size(140.dp)
+                    .clip(CircleShape)
+                    .background(
+                        when {
+                            drinkCount == 0 -> MaterialTheme.colorScheme.surfaceVariant
+                            drinkCount <= 3 -> MaterialTheme.colorScheme.primaryContainer
+                            drinkCount <= 6 -> MaterialTheme.colorScheme.tertiaryContainer
+                            else -> MaterialTheme.colorScheme.errorContainer
+                        }
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = drinkCount.toString(),
+                        fontSize = 56.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = when {
+                            drinkCount == 0 -> MaterialTheme.colorScheme.onSurfaceVariant
+                            drinkCount <= 3 -> MaterialTheme.colorScheme.primary
+                            drinkCount <= 6 -> MaterialTheme.colorScheme.tertiary
+                            else -> MaterialTheme.colorScheme.error
+                        }
+                    )
+                    Text(
+                        text = "juomaa",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
-            )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
                 text = when {
@@ -104,14 +147,15 @@ fun DrinkCounterScreen(
                     else -> "🔴 Paljon juotu"
                 },
                 style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // plussa ja miinus napit
+            // + ja - napit
             Row(
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(24.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 FilledTonalButton(
@@ -135,7 +179,7 @@ fun DrinkCounterScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // QR-skannausnappula
+            // QR-skannausnappi
             OutlinedButton(
                 onClick = {
                     val options = ScanOptions().apply {
@@ -145,7 +189,9 @@ fun DrinkCounterScreen(
                     }
                     scanLauncher.launch(options)
                 },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Icon(Icons.Default.QrCodeScanner, contentDescription = null)
@@ -155,75 +201,100 @@ fun DrinkCounterScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // tallennus nappi
+            // Tallenna nappi
             Button(
                 onClick = {
                     viewModel.saveDrinkLog(currentUserId, eventId, eventName)
                 },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Tallenna")
+                Text("Tallenna", fontWeight = FontWeight.Bold)
             }
 
             if (isSaved) {
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "✅ Tallennettu!",
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium
-                )
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    ),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.padding(horizontal = 24.dp)
+                ) {
+                    Text(
+                        text = "✅ Tallennettu!",
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // juomahistoria
+            // Juomahistoria
             if (drinkHistory.isNotEmpty()) {
-                Text(
-                    text = "Juomahistoria",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.align(Alignment.Start)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                LazyColumn(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp)
                 ) {
-                    items(drinkHistory.reversed()) { drink ->
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(8.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant
-                            )
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(12.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
+                    Text(
+                        text = "Juomahistoria",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    LazyColumn(
+                        modifier = Modifier.heightIn(max = 150.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        items(drinkHistory.reversed()) { drink ->
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(8.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                                )
                             ) {
-                                Text(
-                                    text = "🍺 Juoma #${drinkHistory.indexOf(drink) + 1}",
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                                Text(
-                                    text = drink,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(10.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "🍺 Juoma #${drinkHistory.size - drinkHistory.reversed().indexOf(drink)}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                    Text(
+                                        text = drink,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
 
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Vastuuvapauslauseke
             Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant
-                )
+                ),
+                shape = RoundedCornerShape(12.dp)
             ) {
                 Text(
                     text = "🍺 Muista juoda vastuullisesti. Älä aja autoa alkoholin vaikutuksen alaisena.",
@@ -232,6 +303,8 @@ fun DrinkCounterScreen(
                     modifier = Modifier.padding(12.dp)
                 )
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
