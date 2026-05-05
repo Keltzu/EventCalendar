@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import com.example.eventcalendar.utils.NominatimService
+import com.example.eventcalendar.utils.PreferencesManager
 
 sealed class KideAppState {
     object Idle : KideAppState()
@@ -23,7 +24,8 @@ sealed class KideAppState {
 @HiltViewModel
 class KideAppViewModel @Inject constructor(
     private val kideAppRepository: KideAppRepository,
-    private val eventRepository: EventRepository
+    private val eventRepository: EventRepository,
+    private val preferencesManager: PreferencesManager
 ) : ViewModel() {
 
     private val _kideAppState = MutableStateFlow<KideAppState>(KideAppState.Idle)
@@ -32,8 +34,23 @@ class KideAppViewModel @Inject constructor(
     private val _addedEvents = MutableStateFlow<Set<String>>(emptySet())
     val addedEvents: StateFlow<Set<String>> = _addedEvents
 
+    init {
+        // hateaan viimeksi valittu kaupunki
+        val lastCity = preferencesManager.lastSelectedCity
+        if (lastCity != "Kaikki") {
+            searchEvents(city = lastCity.lowercase())
+        }
+    }
+
     fun searchEvents(query: String = "", city: String = "") {
         viewModelScope.launch {
+            // Tallennetaan valittu kaupunki
+            if (city.isNotEmpty()) {
+                preferencesManager.lastSelectedCity = city.replaceFirstChar { it.uppercase() }
+            } else {
+                preferencesManager.lastSelectedCity = "Kaikki"
+            }
+
             _kideAppState.value = KideAppState.Loading
             kideAppRepository.getKideEvents(query, city)
                 .onSuccess { events ->
