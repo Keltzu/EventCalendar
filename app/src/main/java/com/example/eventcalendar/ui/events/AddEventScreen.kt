@@ -120,7 +120,7 @@ fun AddEventScreen(
             OutlinedTextField(
                 value = category,
                 onValueChange = { category = it },
-                label = { Text("Kategoria (esim. Urheilu, Musiikki)") },
+                label = { Text("Kategoria (esim. approt, sitsit)") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )

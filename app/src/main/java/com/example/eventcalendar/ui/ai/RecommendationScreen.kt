@@ -111,7 +111,7 @@ fun RecommendationScreen(
                 value = userInterests,
                 onValueChange = { userInterests = it },
                 label = { Text("Kiinnostuksesi (vapaaehtoinen)") },
-                placeholder = { Text("esim. musiikki, urheilu, ruoka...") },
+                placeholder = { Text("esim. approt, sitsit, vuosijuhlat...") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 minLines = 2
